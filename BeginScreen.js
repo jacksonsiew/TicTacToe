@@ -1,44 +1,36 @@
 import React, { Component } from 'react';
 import {
-  Alert,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableHighlight,
-  TouchableOpacity,
-  TouchableNativeFeedback,
-  TouchableWithoutFeedback,
-  View,
-  FlatList,
-  AppState
+    Alert,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableHighlight,
+    TouchableOpacity,
+    TouchableNativeFeedback,
+    TouchableWithoutFeedback,
+    View,
+    FlatList,
+    AppState
 } from 'react-native';
 
-type Props = {};
-export default class ChoosePlayerScreen extends Component<Props> {
-  static navigationOptions = {
-      title: 'Choose Game Mode',
-    };
+export default class BeginScreen extends Component<Props> {
+  static navigationOptions = { header: null,};
   render() {
+
     return (
-      <View styles={styles.container}>
+      <View style={styles.container}>
 
-        <Text>One Player</Text>
-        <TouchableHighlight underlayColor="white"
-          onPress={() => {this.props.navigation.navigate('ChoosePlayer', {
-            gameMode: 1,
-          }
-        )}}>
-          <Text style={styles.buttonText}>One Player</Text>
-        </TouchableHighlight>
+      <Text style={styles.header}>TIC TAC TOE</Text>
+      <Text style={styles.sub}>The simplest game on the world</Text>
 
-        <Text>Two Player</Text>
-        <TouchableHighlight underlayColor="white"
-          onPress={() => {this.props.navigation.navigate('ChoosePlayer', {
-            gameMode: 2,
-          }
-        )}}>
-          <Text style={styles.buttonText}>Two Player</Text>
-        </TouchableHighlight>
+      <View style={styles.buttonsty}>
+      <TouchableHighlight underlayColor="white"
+      onPress={() => {this.props.navigation.navigate('ChooseMode')}}>
+      <View style={styles.button}>
+        <Text style={styles.buttonText}>Start Game</Text>
+      </View>
+      </TouchableHighlight>
+      </View>
 
       </View>
     );
@@ -47,25 +39,32 @@ export default class ChoosePlayerScreen extends Component<Props> {
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 20,
+    paddingTop: 0,
     alignItems: 'center'
   },
-  button: {
+  header: {
+    color: 'black',
+    marginTop: 190,
+    padding:  0,
+    fontWeight: 'bold',
+    fontSize: 50
+  },
+  sub: {
+    marginTop: 20
+  },
+  buttonsty: {
     marginTop: 120,
     marginBottom: 30,
     width: 260,
     alignItems: 'center',
     backgroundColor: '#2196F3'
   },
+  button:{
+    alignItems: 'center',
+    width: 260
+  },
   buttonText: {
     padding: 20,
     color: 'white'
-  },
-  header: {
-    color: 'black',
-    marginTop: 160,
-    padding:  0,
-    fontWeight: 'bold',
-    fontSize: 50
   }
 })
