@@ -9,8 +9,8 @@ DB = 'db.sqlite'
 def get_row_as_dict(row):
     row_dict = {
         'id': row[0],
-        'name': row[1],
-        'winRecord': row[2],
+        'email': row[1],
+        'message': row[2],
     }
 
     return row_dict
@@ -19,11 +19,11 @@ def get_row_as_dict(row):
 app = Flask(__name__)
 
 
-@app.route('/api/players', methods=['GET'])
+@app.route('/api/feedbacks', methods=['GET'])
 def index():
     db = sqlite3.connect(DB)
     cursor = db.cursor()
-    cursor.execute('SELECT * FROM players ORDER BY name')
+    cursor.execute('SELECT * FROM feedbacks ORDER BY id')
     rows = cursor.fetchall()
 
     print(rows)
@@ -38,11 +38,11 @@ def index():
     return jsonify(rows_as_dict), 200
 
 
-@app.route('/api/players/<int:player>', methods=['GET'])
-def show(player):
+@app.route('/api/feedbacks/<int:feedback>', methods=['GET'])
+def show(feedback):
     db = sqlite3.connect(DB)
     cursor = db.cursor()
-    cursor.execute('SELECT * FROM players WHERE id=?', (str(player),))
+    cursor.execute('SELECT * FROM feedbacks WHERE id=?', (str(feedback),))
     row = cursor.fetchone()
     db.close()
 
@@ -53,30 +53,30 @@ def show(player):
         return jsonify(None), 200
 
 
-@app.route('/api/players', methods=['POST'])
+@app.route('/api/feedbacks', methods=['POST'])
 def store():
     if not request.json:
         abort(404)
 
-    new_player = (
-        request.json['name'],
-        request.json['winRecord'],
+    new_feedback = (
+        request.json['email'],
+        request.json['message'],
     )
 
     db = sqlite3.connect(DB)
     cursor = db.cursor()
 
     cursor.execute('''
-        INSERT INTO players(name,winRecord)
-        VALUES(?,?,?)
-    ''', new_player)
+        INSERT INTO feedbacks(email,message)
+        VALUES(?,?)
+    ''', new_feedback)
 
-    player_id = cursor.lastrowid
+    feedback_id = cursor.lastrowid
 
     db.commit()
 
     response = {
-        'id': player_id,
+        'id': feedback_id,
         'affected': db.total_changes,
     }
 
@@ -85,36 +85,36 @@ def store():
     return jsonify(response), 201
 
 
-@app.route('/api/players/<int:player>', methods=['PUT'])
-def update(player):
+@app.route('/api/feedbacks/<int:feedback>', methods=['PUT'])
+def update(feedback):
     if not request.json:
         abort(400)
 
     if 'id' not in request.json:
         abort(400)
 
-    if int(request.json['id']) != player:
+    if int(request.json['id']) != feedback:
         abort(400)
 
-    update_player = (
-        request.json['name'],
-        request.json['winRecord'],
-        str(player),
+    update_feedback = (
+        request.json['email'],
+        request.json['message'],
+        str(feedback),
     )
 
     db = sqlite3.connect(DB)
     cursor = db.cursor()
 
     cursor.execute('''
-        UPDATE players SET
-            name=?,winRecord=?
+        UPDATE feedbacks SET
+            emails=?,message=?
         WHERE id=?
-    ''', update_player)
+    ''', update_feedback)
 
     db.commit()
 
     response = {
-        'id': player,
+        'id': feedback,
         'affected': db.total_changes,
     }
 
@@ -123,26 +123,26 @@ def update(player):
     return jsonify(response), 201
 
 
-@app.route('/api/players/<int:player>', methods=['DELETE'])
-def delete(player):
+@app.route('/api/feedbacks/<int:feedback>', methods=['DELETE'])
+def delete(feedback):
     if not request.json:
         abort(400)
 
     if 'id' not in request.json:
         abort(400)
 
-    if int(request.json['id']) != player:
+    if int(request.json['id']) != feedback:
         abort(400)
 
     db = sqlite3.connect(DB)
     cursor = db.cursor()
 
-    cursor.execute('DELETE FROM players WHERE id=?', (str(player),))
+    cursor.execute('DELETE FROM feedbacks WHERE id=?', (str(feedback),))
 
     db.commit()
 
     response = {
-        'id': player,
+        'id': feedback,
         'affected': db.total_changes,
     }
 
