@@ -88,6 +88,7 @@ export default class IndexScreen extends Component<Props> {
   render() {
     return (
       <View style={styles.container}>
+      
         <FlatList
           data={this.state.players}
           showsVerticalScrollIndicator={true}
@@ -126,6 +127,7 @@ export default class IndexScreen extends Component<Props> {
           }
           keyExtractor={(item) => {item.id.toString()}}
         />
+
         {(this.state.isModalVisible) && <AppButton style={styles.button}
           title={'Start Game'}
           theme={'primary'}
@@ -139,6 +141,7 @@ export default class IndexScreen extends Component<Props> {
             }
           }}
         />}
+
         <FloatingAction
           actions={actions}
           color={'#a80000'}
@@ -163,6 +166,7 @@ export default class IndexScreen extends Component<Props> {
             }
           }
         />
+
       </View>
     );
   }
