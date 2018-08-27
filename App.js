@@ -6,19 +6,25 @@ import BeginScreen from './BeginScreen';
 import ChooseModeScreen from './ChooseModeScreen'
 import ChoosePlayerScreen from './ChoosePlayerScreen';
 import GameScreen from './GameScreen';
+import CreatePlayerScreen from './CreatePlayerScreen';
+
+console.disableYellowBox=true;
 
 export default createStackNavigator({
   Begin: {
     screen: BeginScreen,
   },
   ChooseMode: {
-    screen: ChooseModeScreen
+    screen: ChooseModeScreen,
   },
   ChoosePlayer: {
     screen: ChoosePlayerScreen,
   },
   Game: {
     screen: GameScreen,
+  },
+  CreatePlayer: {
+    screen: CreatePlayerScreen,
   },
 }, {
   initialRouteName: 'Begin',

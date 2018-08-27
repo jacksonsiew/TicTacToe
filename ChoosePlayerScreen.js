@@ -12,26 +12,25 @@ import {
 } from 'react-native';
 import {
   InputWithLabel,
-  PickerWithLabel,
   AppButton,
 } from './UI';
 import { FloatingAction } from 'react-native-floating-action';
 
 const actions = [{
-  text: 'Delete',
-  color: '#c80000',
-  icon: require('./images/baseline_delete_white_18dp.png'),
-  name: 'delete',
-  position: 2
-},{
   text: 'Add',
   color: '#c80000',
   icon: require('./images/baseline_add_white_18dp.png'),
   name: 'add',
   position: 1
+},{
+  text: 'Delete',
+  color: '#c80000',
+  icon: require('./images/baseline_delete_white_18dp.png'),
+  name: 'delete',
+  position: 2
 }];
 
-let config = require('./Config');
+let SQLite = require('react-native-sqlite-storage');
 
 type Props = {};
 export default class IndexScreen extends Component<Props> {
@@ -42,40 +41,60 @@ export default class IndexScreen extends Component<Props> {
     super(props)
 
     this.state = {
+      player:null,
       players: [],
       readyPlayers: [],
       gameMode: this.props.navigation.getParam('gameMode'),
       isFetching: false,
       isModalVisible : false,
     };
-    this._load = this._load.bind(this);
+    this._query = this._query.bind(this);
+
+    this.db=SQLite.openDatabase({
+      name: 'playerdb',
+      createFromLocation:'~playersdb.sqlite'
+    },this.openDb,this.errorDb);
   }
 
   componentDidMount() {
-    this._load();
+    this._query();
   }
 
-  _load() {
-    let url = config.settings.serverPath + '/api/players';
-
-    this.setState({isFetching: true});
-
-    fetch(url)
-    .then((response) => {
-      if(!response.ok) {
-        Alert.alert('Error', response.status.toString());
-        throw Error('Error ' + response.status);
-      }
-
-      return response.json()
-    })
-    .then((players) => {
-      this.setState({players});
-      this.setState({isFetching: false});
-    })
-    .catch((error) => {
-      console.log(error)
+  _query() {
+    this.db.transaction((tx) => {
+      tx.executeSql('SELECT * FROM players ORDER BY id', [], (tx, results) => {
+        this.setState({
+          players: results.rows.raw(),
+        })
+      })
     });
+  }
+
+  openDb() {
+    console.log('Database opened');
+  }
+
+  errorDb(err) {
+    console.log('SQL Error: ' + err);
+  }
+
+  _delete() {
+    Alert.alert('Confirm Deletion', 'Delete `'+ this.state.player.name +'`?', [
+      {
+        text: 'No',
+        onPress: () => {},
+      },
+      {
+        text: 'Yes',
+        onPress: () => {
+          this.db.transaction((tx) => {
+            tx.executeSql('DELETE FROM players WHERE id = ?', [this.state.player.id])
+          });
+
+           this.props.navigation.goBack();
+        },
+      },
+    ], { cancelable: false });
   }
 
   showStartButton()
@@ -88,30 +107,29 @@ export default class IndexScreen extends Component<Props> {
   render() {
     return (
       <View style={styles.container}>
-      
         <FlatList
           data={this.state.players}
           showsVerticalScrollIndicator={true}
           refreshing={this.state.isFetching}
-          onRefresh={this._load}
+          onRefresh={this._query}
           renderItem={({item}) =>
             <TouchableHighlight
               underlayColor={'#cccccc'}
               onPress={(readyPlayers) => {
+                this.setState({player:item})
                 if(this.state.gameMode==1){
+                  Alert.alert(item.name+' ready to challege')
                   this.setState({readyPlayers:item.id})
-                  this.props.navigation.navigate('Game', {
-                  players:this.state.readyPlayers,
-                  gameMode: this.state.gameMode,
-                  refresh: this._load,
-                })
+                  this.showStartButton()
                 }
                 else if(this.state.gameMode==2){
                   if(this.state.readyPlayers.length!=2)  {
                     this.setState({readyPlayers:this.state.readyPlayers.concat([item.id])});
                   }
                   if(this.state.readyPlayers.length==0){
-                    Alert.alert('select player 2');
+                    Alert.alert('First Player is '+item.name);
+                  }else if(this.state.readyPlayers.length==1){
+                    Alert.alert('Second Player is '+item.name);
                   }
                 }
                 if(this.state.gameMode==2 && this.state.readyPlayers.length==1){
@@ -127,21 +145,26 @@ export default class IndexScreen extends Component<Props> {
           }
           keyExtractor={(item) => {item.id.toString()}}
         />
-
         {(this.state.isModalVisible) && <AppButton style={styles.button}
           title={'Start Game'}
           theme={'primary'}
           onPress={(readyPlayers) => {
-             if(this.state.gameMode==2 && this.state.readyPlayers.length==2){
+              if(this.state.gameMode==1){
+                this.props.navigation.navigate('Game', {
+                  players:this.state.readyPlayers,
+                  gameMode: this.state.gameMode,
+                  refresh: this._query,
+                })
+              }
+             else if(this.state.gameMode==2 && this.state.readyPlayers.length==2){
                 this.props.navigation.navigate('Game', {
                 players:this.state.readyPlayers,
                 gameMode: this.state.gameMode,
-                refresh: this._load,
+                refresh: this._query,
               })
             }
           }}
         />}
-
         <FloatingAction
           actions={actions}
           color={'#a80000'}
@@ -154,19 +177,23 @@ export default class IndexScreen extends Component<Props> {
               switch(name) {
                 case 'add':
                   this.props.navigation.navigate('CreatePlayer', {
-                    refresh: this._load,
+                    refresh: this._query,
                     indexRefresh: this.props.navigation.getParam('refresh'),
                   });
                   break;
 
                 case 'delete':
+                  if(this.state.player==null){
+                    Alert.alert('Please select the player that you wish to remove it')
+                  }
+                  else{
                   this._delete();
+                  }
                   break;
               }
             }
           }
         />
-
       </View>
     );
   }
