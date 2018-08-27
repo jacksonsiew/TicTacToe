@@ -38,6 +38,7 @@ export default class GameScreen extends Component<Props> {
       gameMode: this.props.navigation.getParam("gameMode"),
       players: this.props.navigation.getParam("players"),
     });
+    console.log(this.state.players);
   }
 
   renderImage = (row, col) => {
